@@ -24,6 +24,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late final DropdownEditingController<String> genderController;
+  late final DropdownEditingController<UserRole> rolesController;
+
   final List<UserRole> _roles = [
     UserRole(
       "Super Admin",
@@ -57,6 +60,26 @@ class _MyHomePageState extends State<MyHomePage> {
     ),
   ];
 
+  void _resetControllers() {
+    genderController.value = null;
+    rolesController.value = null;
+    debugPrint('reset controllers');
+  }
+
+  @override
+  void initState() {
+    genderController = DropdownEditingController<String>();
+    rolesController = DropdownEditingController<UserRole>();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    genderController.dispose();
+    rolesController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             TextDropdownFormField(
               options: ["Male", "Female"],
+              controller: genderController,
               decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   suffixIcon: Icon(Icons.arrow_drop_down),
@@ -80,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             DropdownFormField<UserRole>(
               onEmptyActionPressed: () async {},
+              controller: rolesController,
               decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   suffixIcon: Icon(Icons.arrow_drop_down),
@@ -112,6 +137,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: onTap,
               ),
             ),
+            MaterialButton(
+              onPressed: _resetControllers,
+              child: Text('Reset'),
+            )
           ],
         ),
       ),

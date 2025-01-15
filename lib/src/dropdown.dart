@@ -139,6 +139,8 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
         _removeOverlay();
       }
     });
+
+    _effectiveController.addListener(_handleControllerChange);
   }
 
   @override
@@ -146,7 +148,13 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
     super.dispose();
     _debounce?.cancel();
     _searchTextController.dispose();
+
+    _effectiveController.removeListener(_handleControllerChange);
+    _controller.dispose();
   }
+
+  void _handleControllerChange() =>
+      _setValueFromController(_effectiveController.value);
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +177,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
               _isFocused = focused;
             });
           },
-          onKey: (focusNode, event) {
+          onKeyEvent: (focusNode, event) {
             return _onKeyPressed(event);
           },
           child: FormField(
@@ -366,9 +374,8 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
     });
   }
 
-  KeyEventResult _onKeyPressed(RawKeyEvent event) {
-    // print('_onKeyPressed : ${event.character}');
-    if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
+  KeyEventResult _onKeyPressed(KeyEvent event) {
+    if (event.logicalKey == LogicalKeyboardKey.enter) {
       if (_searchFocusNode.hasFocus) {
         _toggleOverlay();
       } else {
@@ -376,11 +383,11 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
       }
       return KeyEventResult.handled;
     }
-    if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
       _removeOverlay();
       return KeyEventResult.handled;
     }
-    if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       int v = _listItemFocusedPosition;
       v++;
       if (v >= _options!.length) v = 0;
@@ -388,7 +395,7 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
       _listItemsValueNotifier.value = List<T>.from(_options ?? []);
       return KeyEventResult.handled;
     }
-    if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       int v = _listItemFocusedPosition;
       v--;
       if (v < 0) v = _options!.length - 1;
@@ -413,8 +420,24 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
   }
 
   _setValue() {
-    var item = _options![_listItemFocusedPosition];
+    T? item = _options![_listItemFocusedPosition];
     _selectedItem = item;
+    _effectiveController.value = _selectedItem;
+
+    if (widget.onChanged != null) {
+      widget.onChanged!(_selectedItem);
+    }
+
+    setState(() {});
+  }
+
+  _setValueFromController(T? value) {
+    final int index = value == null ? -1 : _options!.indexOf(value);
+    if (index == -1) {
+      _selectedItem = null;
+    } else {
+      _selectedItem = _options![index];
+    }
 
     _effectiveController.value = _selectedItem;
 
