@@ -431,12 +431,14 @@ class DropdownFormFieldState<T> extends State<DropdownFormField<T>>
     setState(() {});
   }
 
-  _setValueFromController(T? value) {
-    final int index = value == null ? -1 : _options!.indexOf(value);
+  _setValueFromController(T? value) async {
+    List<T> items = await widget.findFn('');
+
+    final int index = value == null ? -1 : items!.indexOf(value);
     if (index == -1) {
       _selectedItem = null;
     } else {
-      _selectedItem = _options![index];
+      _selectedItem = items![index];
     }
 
     _effectiveController.value = _selectedItem;

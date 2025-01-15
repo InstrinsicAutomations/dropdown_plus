@@ -61,9 +61,14 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   void _resetControllers() {
+    debugPrint('reset controllers');
+
     genderController.value = null;
     rolesController.value = null;
-    debugPrint('reset controllers');
+
+    // This works as well:
+    // genderController.value = 'Female';
+    // rolesController.value = _roles.last;
   }
 
   @override
